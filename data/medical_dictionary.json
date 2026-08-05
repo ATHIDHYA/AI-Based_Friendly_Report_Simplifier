@@ -1,0 +1,35 @@
+{
+  "diseases": {
+    "hypertension": "High blood pressure — your heart is working harder than it should to pump blood.",
+    "diabetes mellitus": "A condition where your body has trouble controlling blood sugar levels.",
+    "myocardial infarction": "A heart attack — part of the heart muscle isn't getting enough blood.",
+    "hyperlipidemia": "High levels of fat (cholesterol) in your blood.",
+    "anemia": "Your blood doesn't have enough healthy red blood cells to carry oxygen well.",
+    "pneumonia": "An infection that inflames the air sacs in one or both lungs.",
+    "hypothyroidism": "Your thyroid gland isn't making enough hormone, which can slow down your body.",
+    "hyperthyroidism": "Your thyroid gland is making too much hormone, speeding up your body's processes.",
+    "osteoarthritis": "Wear-and-tear damage to joint cartilage, causing pain and stiffness.",
+    "chronic kidney disease": "Your kidneys are gradually losing their ability to filter waste from your blood."
+  },
+  "medicines": {
+    "metformin": "A common medicine to help control blood sugar in diabetes.",
+    "atorvastatin": "A medicine that lowers cholesterol levels in the blood.",
+    "amlodipine": "A medicine that relaxes blood vessels to lower blood pressure.",
+    "levothyroxine": "A medicine that replaces thyroid hormone your body isn't making enough of.",
+    "paracetamol": "A common pain reliever and fever reducer.",
+    "aspirin": "A medicine used to reduce pain, fever, and to help prevent blood clots.",
+    "omeprazole": "A medicine that reduces stomach acid, used for acid reflux or ulcers."
+  },
+  "lab_terms": {
+    "hba1c": "A test showing your average blood sugar level over the past 2-3 months.",
+    "creatinine": "A waste product filtered by your kidneys — high levels can mean your kidneys aren't filtering well.",
+    "hemoglobin": "The protein in red blood cells that carries oxygen around your body.",
+    "ldl": "'Bad' cholesterol — high levels can build up in your arteries.",
+    "hdl": "'Good' cholesterol — helps remove bad cholesterol from your blood.",
+    "tsh": "Thyroid Stimulating Hormone — tells your thyroid gland how much hormone to make.",
+    "wbc count": "White Blood Cell count — measures cells that fight infection.",
+    "platelet count": "Measures cells in your blood that help it clot and stop bleeding.",
+    "bilirubin": "A substance made when red blood cells break down — high levels can indicate liver issues.",
+    "esr": "Erythrocyte Sedimentation Rate — a test that can show inflammation somewhere in the body."
+  }
+}

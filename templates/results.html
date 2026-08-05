@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Results</title>
+
+</head>
+
+<body>
+
+<h1>Simplified Medical Report</h1>
+
+<h2>Original Report</h2>
+
+<pre>{{ result.original_text }}</pre>
+
+<hr>
+
+<h2>Detected Medical Terms</h2>
+
+<ul>
+
+{% for entity in result.entities %}
+
+<li>
+
+<b>{{ entity.text }}</b>
+
+({{ entity.label }})
+
+<br>
+
+{{ entity.explanation }}
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+<hr>
+
+<h2>Summary</h2>
+
+<pre>
+
+{{ result.simplified_summary }}
+
+</pre>
+
+<br>
+
+<a href="/">Analyze Another Report</a>
+
+</body>
+
+</html>

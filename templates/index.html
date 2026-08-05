@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Medical Report Simplifier</title>
+
+</head>
+
+<body>
+
+<h1>AI Medical Report Simplifier</h1>
+
+{% if error %}
+<p style="color:red;">
+    {{ error }}
+</p>
+{% endif %}
+
+<form action="/upload"
+      method="POST"
+      enctype="multipart/form-data">
+
+    <h3>Upload PDF / Image</h3>
+
+    <input
+        type="file"
+        name="report">
+
+    <br><br>
+
+    <h3>OR</h3>
+
+    <textarea
+        name="report_text"
+        rows="15"
+        cols="80"
+        placeholder="Paste medical report here..."></textarea>
+
+    <br><br>
+
+    <button type="submit">
+
+        Simplify Report
+
+    </button>
+
+</form>
+
+</body>
+
+</html>
