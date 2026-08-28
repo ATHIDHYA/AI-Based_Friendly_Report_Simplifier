@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Directory | AI Medical Report Simplifier</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --muted-color: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: #0f172a;
+            color: white;
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header-action h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            color: #0f172a;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            padding: 14px 18px;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge-code {
+            background-color: #eff6ff;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .badge-reports {
+            background-color: #ecfdf5;
+            color: #047857;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--muted-color);
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🏥 AI Medical Report Simplifier</a>
+        <div class="nav-links">
+            <a href="/">Upload & Simplify</a>
+            <a href="/patients" class="active">Patient Directory</a>
+            <a href="/patients/add">+ Register Patient</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-action">
+            <div>
+                <h1>Patient Directory</h1>
+                <p style="color: var(--muted-color); margin-top: 4px;">Manage patient records and view historical medical report summaries.</p>
+            </div>
+            <a href="/patients/add" class="btn">+ New Patient</a>
+        </div>
+
+        <div class="card">
+            {% if patients %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient Code</th>
+                        <th>Full Name</th>
+                        <th>Age / Gender</th>
+                        <th>Blood Group</th>
+                        <th>Contact</th>
+                        <th>Reports</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td><span class="badge-code">{{ patient.patient_code }}</span></td>
+                        <td><strong>{{ patient.full_name }}</strong></td>
+                        <td>{{ patient.age or '-' }} yrs / {{ patient.gender or '-' }}</td>
+                        <td>{{ patient.blood_group or '-' }}</td>
+                        <td>{{ patient.contact_phone or patient.contact_email or '-' }}</td>
+                        <td><span class="badge-reports">{{ patient.reports|length }} Reports</span></td>
+                        <td>
+                            <a href="/patients/{{ patient.id }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">View Profile →</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No registered patients found in the database.</p>
+                <a href="/patients/add" class="btn">+ Register First Patient</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

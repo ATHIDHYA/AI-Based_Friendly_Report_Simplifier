@@ -41,9 +41,40 @@ def _get_hf_pipeline():
 def lookup_term(term: str):
     """Search all dictionary categories for a term, return explanation or None."""
     term = term.lower().strip()
-    for category, terms in _dictionary.items():
+    for category in ["diseases", "medicines", "lab_terms"]:
+        terms = _dictionary.get(category, {})
         if term in terms:
             return terms[term]
+    return None
+
+
+def lookup_recommendation(term: str):
+    """Search dictionary recommendations for a specific term, with alias support."""
+    term = term.lower().strip()
+    recs = _dictionary.get("recommendations", {})
+    if term in recs:
+        return recs[term]
+
+    # Check common aliases
+    aliases = {
+        "diabetes": "diabetes mellitus",
+        "high blood pressure": "hypertension",
+        "cholesterol": "hyperlipidemia",
+        "high cholesterol": "hyperlipidemia",
+        "heart attack": "myocardial infarction",
+        "kidney disease": "chronic kidney disease",
+        "low iron": "anemia",
+        "thyroid": "hypothyroidism"
+    }
+    target = aliases.get(term)
+    if target and target in recs:
+        return recs[target]
+
+    # Partial substring check
+    for key, val in recs.items():
+        if key in term or term in key:
+            return val
+
     return None
 
 
@@ -58,13 +89,105 @@ def ai_simplify(term: str, context_sentence: str):
     return result[0]["generated_text"].strip()
 
 
+def generate_recommendations(entities: list, use_ai_fallback: bool = True):
+    """
+    Generates personalized diet (food) and exercise recommendations based on
+    detected medical conditions and lab findings.
+    """
+    by_condition = []
+    seen_conditions = set()
+
+    all_eat = []
+    all_avoid = []
+    all_exercise = []
+    all_precautions = []
+
+    for ent in entities:
+        term_clean = ent["text"].lower().strip()
+        label = ent["label"]
+
+        if label not in {"DISEASE", "LAB_TERM"}:
+            continue
+
+        if term_clean in seen_conditions:
+            continue
+        seen_conditions.add(term_clean)
+
+        rec = lookup_recommendation(term_clean)
+
+        if rec:
+            cond_data = {
+                "condition": ent["text"].title(),
+                "foods_to_eat": rec.get("foods_to_eat", []),
+                "foods_to_avoid": rec.get("foods_to_avoid", []),
+                "recommended_exercise": rec.get("recommended_exercise", []),
+                "exercise_precautions": rec.get("exercise_precautions", "")
+            }
+            by_condition.append(cond_data)
+            all_eat.extend(rec.get("foods_to_eat", []))
+            all_avoid.extend(rec.get("foods_to_avoid", []))
+            all_exercise.extend(rec.get("recommended_exercise", []))
+            if rec.get("exercise_precautions"):
+                all_precautions.append(rec["exercise_precautions"])
+        elif use_ai_fallback and label == "DISEASE":
+            try:
+                pipe = _get_hf_pipeline()
+                prompt_food = f"Give 2 simple dietary food tips for a patient with {ent['text']}."
+                food_res = pipe(prompt_food, max_new_tokens=40)[0]["generated_text"].strip()
+
+                prompt_ex = f"Give 1 simple safe exercise tip for a patient with {ent['text']}."
+                ex_res = pipe(prompt_ex, max_new_tokens=40)[0]["generated_text"].strip()
+
+                cond_data = {
+                    "condition": ent["text"].title(),
+                    "foods_to_eat": [food_res] if food_res else ["Balanced nutrient-rich diet"],
+                    "foods_to_avoid": ["Highly processed foods and excessive sugar"],
+                    "recommended_exercise": [ex_res] if ex_res else ["Light walking for 30 minutes daily"],
+                    "exercise_precautions": "Consult your physician before beginning exercise."
+                }
+                by_condition.append(cond_data)
+                all_eat.extend(cond_data["foods_to_eat"])
+                all_avoid.extend(cond_data["foods_to_avoid"])
+                all_exercise.extend(cond_data["recommended_exercise"])
+                all_precautions.append(cond_data["exercise_precautions"])
+            except Exception:
+                pass
+
+    def _dedupe(lst):
+        seen = set()
+        res = []
+        for item in lst:
+            if item and item not in seen:
+                seen.add(item)
+                res.append(item)
+        return res
+
+    if not by_condition:
+        all_eat = ["Fresh fruits and vegetables", "Whole grains and legumes", "Adequate daily water intake"]
+        all_avoid = ["Excessive sodium and refined sugars", "Deep-fried and heavily processed foods"]
+        all_exercise = ["30 minutes of moderate physical activity (like walking) 5 days a week"]
+        all_precautions = ["Listen to your body and rest when tired."]
+
+    return {
+        "by_condition": by_condition,
+        "aggregated": {
+            "foods_to_eat": _dedupe(all_eat),
+            "foods_to_avoid": _dedupe(all_avoid),
+            "recommended_exercise": _dedupe(all_exercise),
+            "general_precautions": _dedupe(all_precautions)
+        },
+        "disclaimer": "Medical Disclaimer: These dietary and exercise suggestions are provided for general educational purposes only. Always consult a qualified physician or healthcare professional before making any significant changes to your diet, medication, or physical activity routine."
+    }
+
+
 def simplify_report(text: str, use_ai_fallback: bool = True):
     """
     Main entry point. Returns a dict:
     {
         "original_text": ...,
         "entities": [ {text, label, explanation, source}, ... ],
-        "simplified_summary": "..."
+        "simplified_summary": "...",
+        "recommendations": { ... }
     }
     """
     entities = extract_entities(text, nlp=_nlp)
@@ -92,10 +215,13 @@ def simplify_report(text: str, use_ai_fallback: bool = True):
     summary_lines = [f"- {e['text'].title()} ({e['label']}): {e['explanation']}" for e in enriched]
     simplified_summary = "\n".join(summary_lines) if summary_lines else "No medical terms detected."
 
+    recommendations = generate_recommendations(entities, use_ai_fallback=use_ai_fallback)
+
     return {
         "original_text": text.strip(),
         "entities": enriched,
         "simplified_summary": simplified_summary,
+        "recommendations": recommendations,
     }
 
 
@@ -108,7 +234,9 @@ if __name__ == "__main__":
     Chronic Kidney Disease.
     """
 
-    # First run WITHOUT the AI fallback so you can see the fast dictionary-only path
     result = simplify_report(sample_report, use_ai_fallback=False)
     print("=== SIMPLIFIED REPORT (dictionary-only) ===")
     print(result["simplified_summary"])
+    print("\n=== RECOMMENDATIONS ===")
+    import json
+    print(json.dumps(result["recommendations"], indent=2))

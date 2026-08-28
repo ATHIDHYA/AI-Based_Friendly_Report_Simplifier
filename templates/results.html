@@ -1,59 +1,335 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis & Patient Recommendations</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --muted-color: #64748b;
+            --border-color: #e2e8f0;
+            --green-bg: #ecfdf5;
+            --green-border: #10b981;
+            --red-bg: #fef2f2;
+            --red-border: #ef4444;
+            --blue-bg: #eff6ff;
+            --blue-border: #3b82f6;
+            --amber-bg: #fffbebfb;
+            --amber-border: #f59e0b;
+        }
 
-<title>Results</title>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
 
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header-bar h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            color: #0f172a;
+        }
+
+        .btn-back {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            padding: 26px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .entity-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .entity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .entity-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1e293b;
+        }
+
+        .badge-disease {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-medicine {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-lab {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .entity-explanation {
+            font-size: 0.92rem;
+            color: #475569;
+        }
+
+        .rec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .rec-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .rec-box {
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid;
+        }
+
+        .rec-box-eat {
+            background-color: var(--green-bg);
+            border-color: var(--green-border);
+        }
+
+        .rec-box-avoid {
+            background-color: var(--red-bg);
+            border-color: var(--red-border);
+        }
+
+        .rec-box-exercise {
+            background-color: var(--blue-bg);
+            border-color: var(--blue-border);
+        }
+
+        .rec-box-precaution {
+            background-color: #fffbeb;
+            border-color: var(--amber-border);
+        }
+
+        .rec-box h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rec-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .rec-box li {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .disclaimer-banner {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 0.85rem;
+            color: #475569;
+            margin-top: 15px;
+        }
+
+        pre.raw-text {
+            background: #f1f5f9;
+            padding: 14px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: #334155;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <div class="header-bar">
+            <h1>Analysis & Recommendations</h1>
+            <a href="/" class="btn-back">← Analyze Another Report</a>
+        </div>
 
-<h1>Simplified Medical Report</h1>
+        <!-- 1. DETECTED TERMS & SIMPLIFICATIONS -->
+        <div class="card">
+            <h2 class="card-title">💡 Detected Medical Terms & Plain-English Explanations</h2>
+            {% if result.entities %}
+            <div class="entity-grid">
+                {% for entity in result.entities %}
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <span class="entity-name">{{ entity.text | title }}</span>
+                        {% if entity.label == "DISEASE" %}
+                        <span class="badge-disease">DISEASE</span>
+                        {% elif entity.label == "MEDICINE" %}
+                        <span class="badge-medicine">MEDICINE</span>
+                        {% else %}
+                        <span class="badge-lab">LAB TERM</span>
+                        {% endif %}
+                    </div>
+                    <div class="entity-explanation">{{ entity.explanation }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No medical terms detected in dictionary.</p>
+            {% endif %}
+        </div>
 
-<h2>Original Report</h2>
+        <!-- 2. PATIENT LIFESTYLE RECOMMENDATIONS (FOOD & EXERCISE) -->
+        <div class="card">
+            <h2 class="card-title">🥗 🏃 Personalized Patient Recommendations</h2>
+            <p style="color: var(--muted-color); margin-top: -10px; margin-bottom: 20px;">
+                Tailored dietary and physical activity advice based on detected findings in your medical report.
+            </p>
 
-<pre>{{ result.original_text }}</pre>
+            <div class="rec-grid">
+                <!-- Recommended Foods -->
+                <div class="rec-box rec-box-eat">
+                    <h3>🥦 Recommended Foods (To Eat)</h3>
+                    <ul>
+                        {% for food in result.recommendations.aggregated.foods_to_eat %}
+                        <li>{{ food }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
-<hr>
+                <!-- Foods to Avoid -->
+                <div class="rec-box rec-box-avoid">
+                    <h3>🚫 Foods to Avoid / Limit</h3>
+                    <ul>
+                        {% for food in result.recommendations.aggregated.foods_to_avoid %}
+                        <li>{{ food }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
-<h2>Detected Medical Terms</h2>
+                <!-- Recommended Exercise -->
+                <div class="rec-box rec-box-exercise">
+                    <h3>🏃 Safe Physical Activity & Exercise</h3>
+                    <ul>
+                        {% for ex in result.recommendations.aggregated.recommended_exercise %}
+                        <li>{{ ex }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
-<ul>
+                <!-- Precautions -->
+                <div class="rec-box rec-box-precaution">
+                    <h3>⚠️ Exercise & Health Precautions</h3>
+                    <ul>
+                        {% for prec in result.recommendations.aggregated.general_precautions %}
+                        <li>{{ prec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
 
-{% for entity in result.entities %}
+            <!-- Condition Breakdown (Optional Details) -->
+            {% if result.recommendations.by_condition %}
+            <div style="margin-top: 25px;">
+                <h3 style="font-size: 1.05rem; color: #334155;">📋 Breakdown by Condition:</h3>
+                <ul style="padding-left: 20px; font-size: 0.93rem;">
+                    {% for item in result.recommendations.by_condition %}
+                    <li><b>{{ item.condition }}</b>: Diet focus includes <i>{{ item.foods_to_eat | join(', ') }}</i>. Exercise recommendation: <i>{{ item.recommended_exercise | join(', ') }}</i></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
 
-<li>
+            <div class="disclaimer-banner">
+                ℹ️ <b>Medical Disclaimer:</b> {{ result.recommendations.disclaimer }}
+            </div>
+        </div>
 
-<b>{{ entity.text }}</b>
+        <!-- 3. ORIGINAL REPORT TEXT -->
+        <div class="card">
+            <h2 class="card-title">📄 Original Extracted Report Text</h2>
+            <pre class="raw-text">{{ result.original_text }}</pre>
+        </div>
 
-({{ entity.label }})
-
-<br>
-
-{{ entity.explanation }}
-
-</li>
-
-{% endfor %}
-
-</ul>
-
-<hr>
-
-<h2>Summary</h2>
-
-<pre>
-
-{{ result.simplified_summary }}
-
-</pre>
-
-<br>
-
-<a href="/">Analyze Another Report</a>
-
+    </div>
 </body>
-
 </html>

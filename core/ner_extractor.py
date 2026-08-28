@@ -47,8 +47,8 @@ def build_nlp():
 
     dictionary = load_dictionary()
     patterns = []
-    for category, terms in dictionary.items():
-        label = LABEL_MAP[category]
+    for category, label in LABEL_MAP.items():
+        terms = dictionary.get(category, {})
         for term in terms.keys():
             patterns.append({"label": label, "pattern": term})
             # Also match a capitalized version (e.g. "Hba1c" vs "hba1c")

@@ -1,52 +1,326 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Report Simplifier & Health Advisor</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --muted-color: #64748b;
+            --border-color: #e2e8f0;
+            --accent-green: #10b981;
+        }
 
-    <title>Medical Report Simplifier</title>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
 
+        .navbar {
+            background-color: #0f172a;
+            color: white;
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: white;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--muted-color);
+            font-size: 1.1rem;
+        }
+
+        .features-badge {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background-color: #e0e7ff;
+            color: #3730a3;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+        }
+
+        .error-alert {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .info-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.92rem;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+            box-sizing: border-box;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            background-color: #f1f5f9;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .file-upload-box:hover {
+            border-color: var(--primary);
+        }
+
+        input[type="file"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0;
+            color: var(--muted-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 12px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .footer-note {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--muted-color);
+        }
+    </style>
 </head>
-
 <body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🏥 AI Medical Report Simplifier</a>
+        <div class="nav-links">
+            <a href="/" class="active">Upload & Simplify</a>
+            <a href="/patients">Patient Directory</a>
+            <a href="/patients/add">+ Register Patient</a>
+        </div>
+    </nav>
 
-<h1>AI Medical Report Simplifier</h1>
+    <div class="container">
+        <div class="header">
+            <h1>AI Medical Report Simplifier</h1>
+            <p>Upload or paste your lab report to get plain-English explanations and tailored food & exercise guidelines.</p>
+            <div class="features-badge">
+                <span class="badge">🔍 Medical Term Detection</span>
+                <span class="badge">💡 Plain-English Simplification</span>
+                <span class="badge">🥗 Custom Diet Advice</span>
+                <span class="badge">🏃 Exercise Guidelines</span>
+            </div>
+        </div>
 
-{% if error %}
-<p style="color:red;">
-    {{ error }}
-</p>
-{% endif %}
+        <div class="card">
+            {% if error %}
+            <div class="error-alert">
+                ⚠️ {{ error }}
+            </div>
+            {% endif %}
 
-<form action="/upload"
-      method="POST"
-      enctype="multipart/form-data">
+            <div class="info-box">
+                ⚡ <strong>Automatic Patient Archiving:</strong> Patient demographic details (Name, Age, Gender, Blood Group, Contact) are automatically extracted from your report text and stored in the database!
+            </div>
 
-    <h3>Upload PDF / Image</h3>
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Link to Existing Patient (Optional)</label>
+                    <select name="patient_id">
+                        <option value="">-- Auto-Detect Patient / Auto-Create New Record --</option>
+                        {% if patients %}
+                            {% for p in patients %}
+                            <option value="{{ p.id }}">{{ p.full_name }} ({{ p.patient_code }})</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
 
-    <input
-        type="file"
-        name="report">
+                <div class="form-row">
+                    <div>
+                        <label>Patient Name (Optional Override)</label>
+                        <input type="text" name="patient_name" placeholder="Auto-extracted if left empty">
+                    </div>
+                    <div>
+                        <label>Patient Age (Optional Override)</label>
+                        <input type="number" name="patient_age" placeholder="Auto-extracted if left empty" min="0" max="120">
+                    </div>
+                </div>
 
-    <br><br>
+                <div class="form-group">
+                    <label>Upload Report File (PDF or Image)</label>
+                    <div class="file-upload-box">
+                        <input type="file" name="report" accept=".pdf,.png,.jpg,.jpeg,.txt">
+                    </div>
+                </div>
 
-    <h3>OR</h3>
+                <div class="divider">
+                    <span>OR PASTE REPORT TEXT</span>
+                </div>
 
-    <textarea
-        name="report_text"
-        rows="15"
-        cols="80"
-        placeholder="Paste medical report here..."></textarea>
+                <div class="form-group">
+                    <label>Medical Report Text</label>
+                    <textarea name="report_text" rows="8" placeholder="Paste medical report text here (e.g. Patient Name: John Doe, Age: 45, Gender: Male, Blood Group: O+... Lab test results, impression, diagnosis)..."></textarea>
+                </div>
 
-    <br><br>
+                <button type="submit" class="btn-submit">
+                    Simplify Report & Automatically Store Patient Record
+                </button>
+            </form>
+        </div>
 
-    <button type="submit">
-
-        Simplify Report
-
-    </button>
-
-</form>
-
+        <div class="footer-note">
+            🛡️ Privacy Protected • All uploaded reports and patient records are stored securely in SQLite database.
+        </div>
+    </div>
 </body>
-
 </html>
