@@ -23,5 +23,10 @@ class Config:
         "png",
         "jpg",
         "jpeg",
+        "webp",
+        "tiff",
+        "tif",
+        "bmp",
+        "gif",
         "txt"
     }

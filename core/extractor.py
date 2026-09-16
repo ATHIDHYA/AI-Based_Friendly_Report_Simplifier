@@ -24,11 +24,39 @@ from pathlib import Path
 import fitz  # PyMuPDF, used to rasterize PDF pages for OCR
 import pdfplumber
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 
 # If a page has fewer than this many characters of extractable text,
 # we treat it as "scanned" and run OCR instead.
 MIN_CHARS_FOR_DIGITAL_PAGE = 20
+
+# Tesseract configuration for better medical report OCR
+TESSERACT_CONFIG = r'--oem 3 --psm 6 -l eng+fra+spa+deu'  # Support multiple languages common in medical reports
+
+
+def _preprocess_image(img: Image.Image) -> Image.Image:
+    """
+    Preprocess image to improve OCR accuracy for medical reports.
+    - Convert to grayscale
+    - Enhance contrast
+    - Apply slight sharpening
+    - Remove noise
+    """
+    # Convert to grayscale for better OCR
+    if img.mode != 'L':
+        img = img.convert('L')
+    
+    # Enhance contrast to make text stand out
+    enhancer = ImageEnhance.Contrast(img)
+    img = enhancer.enhance(2.0)
+    
+    # Apply slight sharpening
+    img = img.filter(ImageFilter.SHARPEN)
+    
+    # Remove noise (median filter)
+    img = img.filter(ImageFilter.MedianFilter(size=3))
+    
+    return img
 
 
 def _ocr_page_with_pymupdf(pdf_path: str, page_number: int, zoom: float = 2.0) -> str:
@@ -41,7 +69,11 @@ def _ocr_page_with_pymupdf(pdf_path: str, page_number: int, zoom: float = 2.0) -
     pix = page.get_pixmap(matrix=matrix)
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     doc.close()
-    return pytesseract.image_to_string(img)
+    
+    # Preprocess image for better OCR
+    processed_img = _preprocess_image(img)
+    
+    return pytesseract.image_to_string(processed_img, config=TESSERACT_CONFIG)
 
 
 def extract_text_from_pdf(pdf_path: str) -> dict:
@@ -73,9 +105,24 @@ def extract_text_from_pdf(pdf_path: str) -> dict:
 
 def extract_text_from_image(image_path: str) -> dict:
     """For when the user uploads a raw image (JPG/PNG) instead of a PDF."""
-    img = Image.open(image_path)
-    text = pytesseract.image_to_string(img).strip()
-    return {"text": text, "pages": [{"page": 1, "method": "ocr", "text": text}]}
+    try:
+        img = Image.open(image_path)
+        
+        # Preprocess image for better OCR
+        processed_img = _preprocess_image(img)
+        
+        # Run OCR with improved configuration
+        text = pytesseract.image_to_string(processed_img, config=TESSERACT_CONFIG).strip()
+        
+        return {"text": text, "pages": [{"page": 1, "method": "ocr", "text": text}]}
+    except Exception as e:
+        # Fallback: try without preprocessing if preprocessing fails
+        try:
+            img = Image.open(image_path)
+            text = pytesseract.image_to_string(img).strip()
+            return {"text": text, "pages": [{"page": 1, "method": "ocr_fallback", "text": text}]}
+        except Exception as fallback_error:
+            raise ValueError(f"Failed to extract text from image: {e}. Fallback also failed: {fallback_error}")
 
 
 def extract_text(file_path: str) -> dict:
@@ -87,7 +134,7 @@ def extract_text(file_path: str) -> dict:
 
     if suffix == ".pdf":
         return extract_text_from_pdf(file_path)
-    elif suffix in {".png", ".jpg", ".jpeg"}:
+    elif suffix in {".png", ".jpg", ".jpeg", ".webp", ".tiff", ".tif", ".bmp", ".gif"}:
         return extract_text_from_image(file_path)
     elif suffix == ".txt":
         text = Path(file_path).read_text(encoding="utf-8", errors="ignore")
